@@ -4,8 +4,26 @@ import secrets
 import random
 from messages import *
 from cmd_parser import *
+import json
 
-bot = commands.Bot(command_prefix = '!', description = help_msg)
+PREFIXES_FILE_PATH = 'prefixes.json'
+
+
+def get_prefixes():
+    with open(PREFIXES_FILE_PATH, 'r') as prefixes_file:
+        return json.load(prefixes_file)
+
+def set_prefixes(prefixes):
+    with open(PREFIXES_FILE_PATH, 'w') as prefixes_file:
+        json.dump(prefixes, prefixes_file, indent =4)
+
+
+def get_prefix(client, message):
+    prefixes = get_prefixes()
+
+    return prefixes[str(message.guild.id)]
+
+bot = commands.Bot(command_prefix = get_prefix, description = help_msg)
 
 @bot.event
 async def on_ready():
@@ -18,6 +36,27 @@ async def on_member_join(member):
 @bot.event
 async def on_member_remove(member):
     print(f'{member} has left the town.')
+
+@bot.event
+async def on_guild_join(guild):
+    prefixes = get_prefixes()
+    prefixes[str(guild.id)] = '!'
+    set_prefixes(prefixes)
+
+
+@bot.event
+async def on_guild_remove(guild):
+    prefixes = get_prefixes()
+    prefixes.pop(str(guild.id))
+    set_prefixes(prefixes)
+
+
+@bot.command(aliases=['cp'])
+async def change_prefix(ctx, *, prefix):
+    prefixes = get_prefixes()
+    prefixes[str(ctx.guild.id)] = prefix
+    set_prefixes(prefixes)
+
 
 @bot.command(aliases=['p'])
 async def ping(ctx):
@@ -43,6 +82,7 @@ async def on_disconnect(ctx):
 @bot.command(aliases=['w'])
 async def werewolf(ctx, args):
     command, *params = args.split()
+    print(command, params)
     Parser(bot, ctx, command, params)
     
 

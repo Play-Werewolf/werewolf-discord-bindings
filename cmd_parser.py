@@ -19,12 +19,12 @@ class Parser:
 
     def start_new_game(self):
         """The args can be like that"""
-        pass
+        self.v_channel = self.context.create_voice_channel("day time villige")
 
     def check_channels(self):
         pass
 
-    def set_channel_state(self):
+    def set_channel_state(self, channel, state):
         pass
 
     def join_game(self):
